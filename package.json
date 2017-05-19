@@ -9,6 +9,9 @@
   "author": "Ichorville",
   "license": "ISC",
   "dependencies": {
-    "mongodb": "^2.2.26"
+    "body-parser": "^1.17.2",
+    "express": "^4.15.3",
+    "mongodb": "^2.2.26",
+    "mongoose": "^4.9.10"
   }
 }
