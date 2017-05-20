@@ -108,7 +108,7 @@ app.patch('/todos/:id', (request, response) => {
     }
 
     // find document by id and update
-    Todo.findOneAndUpdate(
+    Todo.findByIdAndUpdate(
         id,
         { $set: body },
         // return the new updated document
