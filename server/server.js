@@ -10,6 +10,19 @@ var app = express();
 
 app.use(bodyParser.json());
 
+/** GET all togos */
+app.get('/todos', (request, response) => {
+    Todo.find().then((todos) => {
+        response.send({
+            // returned as an object so we could change the return value as we want
+            todos: todos 
+        });
+    }, (error) => {
+        response.status(400).send(error);
+    });
+});
+
+/** Post todo */
 app.post('/todos', (request, response) => {
     var todo = new Todo({
         text: request.body.text
