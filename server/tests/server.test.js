@@ -4,15 +4,43 @@ const request = require('supertest');
 const { app } = require('../server');
 const { Todo } = require('../models/todo');
 
-/**
- * Before each test the Todo Collection is set to empty so that we can 
- * proceed with the idea of the Collection is empty for each test that we 
- * encounter in the test suite.
- */
+const todos = [
+    {
+        text: 'First test todo'
+    },
+    {
+        text: 'Second test todo'
+    }
+];
+
 beforeEach((done) => {
-    Todo.remove({}).then(() => done());
+    Todo.remove({}).then(() => {
+        // a mongoose functon which adds data to the collection
+        return Todo.insertMany(todos);
+    }).then(() => done());
 });
 
+/**
+ *  GET todos tests
+ */
+describe('GET /todos', () => {
+    it('should get all todos', (done) => {
+        request(app)
+            .get('/todos')
+            .expect(200)
+            .expect((response) => {
+                // return the todos array if successful
+                expect(response.body.todos.length).toBe(2);
+            })
+            .end(done);
+            // no further customizations are necessary as we are only testing 
+            // to get all documents from the collection
+    });
+});
+
+/**
+ *  POST todos tests
+ */
 // test for creating a new todo
 describe('POST /todos', () => {
     it('should create a new todo', (done) => {
@@ -35,10 +63,10 @@ describe('POST /todos', () => {
                     return done(error);                 
                 }
                 /**
-                 * at this point no errors so we can test the data that is entered 
-                 * to our collection in the mongodb driver
+                 * at this point no errors so we can test wether the data that is entered 
+                 * to our collection is in the mongodb driver
                  */
-                Todo.find().then((todos) => {
+                Todo.find({ text }).then((todos) => {
                     expect(todos.length).toBe(1);
                     expect(todos[0].text).toBe(text);
                     done();
@@ -54,16 +82,12 @@ describe('POST /todos', () => {
         .post('/todos')
         .send({})
         .expect(400)
-        .expect((response) => {
-            expect(response.body.text).toBe();
-        })
         .end((error, response) => {
             if (error) {
-                return doNotTrack(error);
+                return done(error);
             }
             Todo.find().then((todos) => {
-                expect(todos.length).toBe(0);
-                expect(todos[0]).toBe();
+                expect(todos.length).toBe(2);
                 done();
             }).catch((e) => done(e));
         });
