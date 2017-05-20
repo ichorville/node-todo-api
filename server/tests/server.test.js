@@ -1,8 +1,8 @@
 const expect = require('expect');
 const request = require('supertest');
 
-const { app } = require('./../server');
-const { Todo } = require('./../models/todo');
+const { app } = require('../server');
+const { Todo } = require('../models/todo');
 
 /**
  * Before each test the Todo Collection is set to empty so that we can 
@@ -22,7 +22,7 @@ describe('POST /todos', () => {
             // send to post route
             .post('/todos')               
             // send post data              
-            .send({ text })               
+            .send({ text: text })               
             // expect http post call to be 200        
             .expect(200)                                
             .expect((response) => {
