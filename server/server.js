@@ -60,6 +60,22 @@ app.post('/todos', (request, response) => {
     });
 });
 
+/** Delete todos */
+app.delete('/todos/:id', (request, response) => {
+    var id = request.params.id;
+
+    if (!ObjectID.isValid(id)) {
+        return response.status(404).send();
+    }
+
+    Todo.findByIdAndRemove(id).then((todo) => {
+        if (!todo) {
+            return response.status(404).send();
+        }
+        response.status(200).send(todo);
+    }).catch((error) => response.status(400).send());
+});
+
 app.listen(port, () => {
     console.log(`Server running on port ${ port }`);
 });
