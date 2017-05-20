@@ -25,7 +25,7 @@ beforeEach((done) => {
 });
 
 /**
- *  GET todos tests
+ *  GET todos test
  */
 describe('GET /todos', () => {
     it('should get all todos', (done) => {
@@ -124,5 +124,46 @@ describe('POST /todos', () => {
                 done();
             }).catch((e) => done(e));
         });
+    });
+});
+
+/**
+ *  DELETE todos
+ */
+describe('DELETE /todos/:id', () => {
+    it('should remove a todo', (done) => {
+        var hexId = todos[1]._id.toHexString();
+
+        request(app)
+            .delete(`/todos/${hexId}`)
+            .expect(200)
+            .expect((response) => {
+                // check wether deleted id is same as passed argument
+                expect(response.body.todo._id).toBe(hexId);
+            })
+            .end((error, response) => {
+                if (error) {
+                    return done(error);
+                }
+                // checks wether deleted id still exists 
+                Todo.findById(hexId).then(result => {
+                    expect(result).toNotExist();
+                    done();
+                }).catch((error) => done(error));
+            });
+    });
+
+    it('should return 404 if todo not found', (done) => {
+        request(app)
+            .delete(`/todos/${new ObjectID()}`)
+            .expect(404)
+            .end(done);
+    });
+
+    it('should return 404 if object is invalid', (done) => {
+        request(app)
+            .delete(`/todos/2222222`)
+            .expect(404)
+            .end(done);
     });
 });

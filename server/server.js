@@ -13,7 +13,9 @@ const port = process.env.PORT || 3000;
 
 app.use(bodyParser.json());
 
-/** GET all todos */
+/** 
+ *  GET all todos
+ */
 app.get('/todos', (request, response) => {
     Todo.find().then((todos) => {
         response.send({
@@ -25,7 +27,9 @@ app.get('/todos', (request, response) => {
     });
 });
 
-/** GET todo by ID */
+/** 
+ *  GET todo by ID
+ */
 app.get('/todos/:id', (request, response) => {
     // derive id from params from browser url
     var id = request.params.id;
@@ -47,7 +51,9 @@ app.get('/todos/:id', (request, response) => {
     });
 });
 
-/** POST todo */
+/** 
+ *  POST todo
+ */
 app.post('/todos', (request, response) => {
     var todo = new Todo({
         text: request.body.text
@@ -60,7 +66,9 @@ app.post('/todos', (request, response) => {
     });
 });
 
-/** Delete todos */
+/** 
+ *  Delete todos
+ */
 app.delete('/todos/:id', (request, response) => {
     var id = request.params.id;
 
@@ -72,7 +80,9 @@ app.delete('/todos/:id', (request, response) => {
         if (!todo) {
             return response.status(404).send();
         }
-        response.status(200).send(todo);
+        response.status(200).send({
+            todo: todo
+        });
     }).catch((error) => response.status(400).send());
 });
 
