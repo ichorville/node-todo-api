@@ -6,25 +6,10 @@ const { ObjectID } = require('mongodb');
 const { app } = require('../server');
 const { Todo } = require('../models/todo');
 
-const todos = [
-    {   
-        _id: new ObjectID(),
-        text: 'First test todo'
-    },
-    {
-        _id: new ObjectID(),
-        text: 'Second test todo',
-        completed: true,
-        completedAt: 233629
-    }
-];
+const { todos, users, populateTodos, populateUsers } = require('./seed/seed');
 
-beforeEach((done) => {
-    Todo.remove({}).then(() => {
-        // a mongoose functon which adds data to the collection
-        return Todo.insertMany(todos);
-    }).then(() => done());
-});
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 /**
  *  GET todos test
