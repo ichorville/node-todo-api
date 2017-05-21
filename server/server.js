@@ -12,10 +12,11 @@ const { User } = require('./models/user');
 
 var app = express();
 
-const port = process.env.PORT;
+const port = process.env.PORT; 
 
 app.use(bodyParser.json());
 
+/** TODOS CONFIG */
 /** 
  *  GET all todos
  */
@@ -122,6 +123,23 @@ app.patch('/todos/:id', (request, response) => {
                 todo: todo
             });
         }).catch((error) => response.status(404).send());
+});
+
+/** USER CONFIG */
+/**
+ *  POST user
+ */
+app.post('/users', (request, response) => {
+    var body = _.pick(request.body, ['email', 'password']);
+    var user = new User(body);
+
+    user.save().then(() => {
+        return user.generateAuthToken();
+    }).then((token) => {
+        response.header('x-auth', token).send(user);
+    }).catch((error) => {
+        response.status(400).send(error);
+    });
 });
 
 app.listen(port, () => {
