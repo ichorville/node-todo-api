@@ -42,9 +42,9 @@ UserSchema.methods.toJSON = function() {
 };
 
 
-// fasleproof User schema by providing necessary properties
+// fasleproof User schema by providing necessary properties for signUp/ Login
 UserSchema.methods.generateAuthToken = function() {
-    var user = this;
+    var user = this; // access the current user
 
     var access = 'auth';
 
@@ -58,6 +58,24 @@ UserSchema.methods.generateAuthToken = function() {
     // the return value will be succesfully passed to the next then() call
     return user.save().then(() => {
         return token;
+    });
+};
+
+// Find user by token
+UserSchema.statics.findByToken = function(token) {
+    var User = this; //  access from all users
+    var decoded;
+
+    try {
+        decoded = jwt.verify(token, 'ichorville');
+    } catch (error) {
+        return Promise.reject();
+    }
+
+    return User.findOne({
+        '_id': decoded._id,
+        'tokens.token': token,
+        'tokens.access': 'auth'
     });
 };
 
