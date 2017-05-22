@@ -217,7 +217,7 @@ describe('PATCH /todos/:id', () => {
             .end(done);
     });
 
-    it('should not update tod0(s) of other users', (done) => {
+    it('should not update todo(s) of other users', (done) => {
         var id = todos[0]._id.toHexString();
         var text = 'We take it back';
 
@@ -228,12 +228,7 @@ describe('PATCH /todos/:id', () => {
                 text: text,
                 completed: true
             })
-            .expect(200)
-            .expect((response) => {
-                expect(response.body.todo.text).toBe(text); 
-                expect(response.body.todo.completed).toBe(true); 
-                expect(response.body.todo.completedAt).toBeA('number');
-            })
+            .expect(404)
             .end(done);
     });
 
