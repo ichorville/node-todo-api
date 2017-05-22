@@ -5,6 +5,7 @@ const { ObjectID } = require('mongodb');
 
 const { app } = require('../server');
 const { Todo } = require('../models/todo');
+const { User } = require('../models/user');
 
 const { todos, users, populateTodos, populateUsers } = require('./seed/seed');
 
@@ -194,6 +195,96 @@ describe('PATCH /todos/:id', () => {
                 expect(response.body.todo.completed).toBe(false); 
                 expect(response.body.todo.completedAt).toNotExist();
             })
+            .end(done);
+    });
+});
+
+/**
+ * Authenticate User(s) tests
+ */
+describe('GET /users/me', () => {
+    it('should return user if authenticated', (done) => {
+        request(app)
+            .get('/users/me')
+            // set the headers through supertest
+            .set('x-auth', users[0].tokens[0].token)
+            .expect(200)
+            .expect((response) => {
+                expect(response.body._id).toBe(users[0]._id.toHexString());
+                expect(response.body.email).toBe(users[0].email);
+            })
+            .end(done);
+    });
+
+    it('should return 401 if not authenticated', (done) => {
+        request(app)
+            .get('/users/me')
+            .expect(401)
+            .expect((response) => {
+                expect(response.body).toEqual({})
+            })
+            .end(done);
+    });
+});
+
+/**
+ *  Sign up User
+ */
+describe('POST /users', () => {
+    it('should create a user', (done) => {
+        var email = 'example@example.com';
+        var password = '123adc!';
+
+        request(app)
+            .post('/users')
+            .send({
+                email: email,
+                password: password
+            })
+            .expect(200)
+            .expect((response) => {
+                expect(response.headers['x-auth']).toExist();
+                expect(response.body._id).toExist();
+                expect(response.body.email).toBe(email);
+            })
+            .end((error) => {
+                // for further testing we query the collection to check if user exists
+                if (error) {
+                    return done(error);
+                }
+
+                User.findOne({ email: email }).then((user) => {
+                     expect(user).toExist();
+                     expect(user.password).toNotBe(password);
+                     done();
+                });
+            });
+    });
+
+    it('should return validation errors if request invalid', (done) => {
+        var email = 'any.email';
+        var password = '123';
+
+        request(app)
+            .post('/users')
+            // send a user with insufficient credentials
+            .send({
+                email: email,
+                password: password
+            })
+            .expect(400)
+            .end(done);
+    });
+
+    it('should not create user if email is in use', (done) => {
+        request(app)
+            .post('/users')
+            // send a user with insufficient credentials
+            .send({
+                email: users[0].email,
+                password: 'anypass'
+            })
+            .expect(400)
             .end(done);
     });
 });
