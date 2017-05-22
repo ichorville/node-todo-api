@@ -23,8 +23,10 @@ app.use(bodyParser.json());
 /** 
  *  GET all todos
  */
-app.get('/todos', (request, response) => {
-    Todo.find().then((todos) => {
+app.get('/todos', authenticate, (request, response) => {
+    Todo.find({
+        _creator: request.user._id
+    }).then((todos) => {
         response.send({
             // returned as an object so we could change the return value as we want
             todos: todos 
@@ -37,7 +39,7 @@ app.get('/todos', (request, response) => {
 /** 
  *  GET todo by ID
  */
-app.get('/todos/:id', (request, response) => {
+app.get('/todos/:id', authenticate, (request, response) => {
     // derive id from params from browser url
     var id = request.params.id;
 
@@ -46,7 +48,11 @@ app.get('/todos/:id', (request, response) => {
         return response.status(404).send();
     }
 
-    Todo.findById(id).then((todo) => {
+    Todo.findOne({
+        // find by both the todo and creator Ids
+        _id: id,
+        _creator: request.user._id
+    }).then((todo) => {
         if (!todo) {
             return response.status(404).send();
         }
@@ -61,9 +67,10 @@ app.get('/todos/:id', (request, response) => {
 /** 
  *  POST todo
  */
-app.post('/todos', (request, response) => {
+app.post('/todos', authenticate, (request, response) => {
     var todo = new Todo({
-        text: request.body.text
+        text: request.body.text,
+        _creator: request.user._id
     });
 
     todo.save().then((document) => {
@@ -76,14 +83,17 @@ app.post('/todos', (request, response) => {
 /** 
  *  Delete todos
  */
-app.delete('/todos/:id', (request, response) => {
+app.delete('/todos/:id', authenticate, (request, response) => {
     var id = request.params.id;
 
     if (!ObjectID.isValid(id)) {
         return response.status(404).send();
     }
 
-    Todo.findByIdAndRemove(id).then((todo) => {
+    Todo.findOneAndRemove({
+        _id: id,
+        _creator: request.user._id
+    }).then((todo) => {
         if (!todo) {
             return response.status(404).send();
         }
@@ -96,7 +106,7 @@ app.delete('/todos/:id', (request, response) => {
 /**
  *  Update Todo(s)
  */
-app.patch('/todos/:id', (request, response) => {
+app.patch('/todos/:id', authenticate, (request, response) => {
     var id = request.params.id;
     // this consists of the subset of data the user pases to the url
     var body = _.pick(request.body, ['text', 'completed']);
@@ -114,8 +124,11 @@ app.patch('/todos/:id', (request, response) => {
     }
 
     // find document by id and update
-    Todo.findByIdAndUpdate(
-        id,
+    Todo.findOneAndUpdate(
+        {
+            _id: id,
+            _creator: request.user._id
+        },
         { $set: body },
         // return the new updated document
         { new: true }).then((todo) => {
@@ -166,10 +179,6 @@ app.get('/users/me', authenticate, (request, response) => {
     response.send(request.user);
 });
 
-app.listen(port, () => {
-    console.log(`Server running on port ${ port }`);
-});
-
 /**
  *  DELETE user
  */
@@ -180,5 +189,11 @@ app.delete('/users/me/token', authenticate, (request, response) => {
         response.status(400).send();
     });
 });
+
+app.listen(port, () => {
+    console.log(`Server running on port ${ port }`);
+});
+
+
 
 module.exports = { app };
