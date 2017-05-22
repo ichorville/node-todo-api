@@ -80,6 +80,31 @@ UserSchema.statics.findByToken = function(token) {
     });
 };
 
+/** Find login user */
+UserSchema.statics.findByCredentials = function(email, password) {
+    var User = this;
+    
+    // get user by the email first
+    return User.findOne({ email }).then((user) => {
+        if (!user) {
+            return Promise.reject();
+        }
+
+        // since bcrypt methods always work inside callbacks a new Promise is created
+        // to access the bcrypt.compare method to compare the password
+        return new Promise((resolve, reject) => {
+            bcrypt.compare(password, user.password, (error, response) => {
+                console.log(response);
+                if (response) {
+                    resolve(user);
+                } else {
+                    reject();
+                }
+            });
+        });
+    });
+};
+
 /** Before saving a user */
 UserSchema.pre('save', function (next) {
     var user = this;

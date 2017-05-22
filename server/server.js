@@ -3,6 +3,7 @@ require('./config/config');
 const express = require('express');
 const bodyParser = require('body-parser');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 const { ObjectID } = require('mongodb');
 const { mongoose } = require('./db/mongoose');
@@ -129,7 +130,7 @@ app.patch('/todos/:id', (request, response) => {
 
 /** USER CONFIG */
 /**
- *  POST user / Sign up / Login
+ *  POST user / Sign up
  */
 app.post('/users', (request, response) => {
     var body = _.pick(request.body, ['email', 'password']);
@@ -142,6 +143,20 @@ app.post('/users', (request, response) => {
     }).catch((error) => {
         response.status(400).send(error);
     });
+});
+
+/**
+ *  Login User
+ */
+app.post('/users/login', (request, response) => {
+    var body = _.pick(request.body, ['email', 'password']);
+
+    User.findByCredentials(body.email, body.password).then((user) => {
+        // generate token for the user if user exists (login is successful)
+        return user.generateAuthToken().then((token) => {
+            response.header('x-auth', token).send(user);
+        });
+    }).catch((error) => response.status(400).send());
 });
 
 /**
