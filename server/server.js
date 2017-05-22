@@ -170,4 +170,15 @@ app.listen(port, () => {
     console.log(`Server running on port ${ port }`);
 });
 
+/**
+ *  DELETE user
+ */
+app.delete('/users/me/token', authenticate, (request, response) => {
+    request.user.removeToken(request.token).then(() => {
+        response.status(200).send();
+    }, (error) => {
+        response.status(400).send();
+    });
+});
+
 module.exports = { app };

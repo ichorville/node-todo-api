@@ -44,6 +44,7 @@ UserSchema.methods.toJSON = function() {
 
 
 // fasleproof User schema by providing necessary properties for signUp/ Login
+// this is an instance method
 UserSchema.methods.generateAuthToken = function() {
     var user = this; // access the current user
 
@@ -62,7 +63,21 @@ UserSchema.methods.generateAuthToken = function() {
     });
 };
 
-// Find user by token
+// Remove token from user when logging out
+UserSchema.methods.removeToken = function(token ) {
+    var user = this;
+
+    return user.update({
+        // another mongoose operator to remove items from an array in the database
+        $pull: {
+            tokens: {
+                token: token
+            }
+        }
+    });
+};
+
+// Find user by token; a static method
 UserSchema.statics.findByToken = function(token) {
     var User = this; //  access from all users
     var decoded;
@@ -104,6 +119,8 @@ UserSchema.statics.findByCredentials = function(email, password) {
         });
     });
 };
+
+
 
 /** Before saving a user */
 UserSchema.pre('save', function (next) {
